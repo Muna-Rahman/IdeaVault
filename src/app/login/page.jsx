@@ -29,7 +29,7 @@ function LoginContent() {
       });
 
       if (error) {
-        toast.error(error.message || "Credential matching mismatched. Review entry details.");
+        toast.error(error.message || "Values not matched. Check entry details.");
         return;
       }
 
@@ -41,8 +41,8 @@ function LoginContent() {
       router.push(fromRoute);
       router.refresh();
     } catch (err) {
-      console.error("Critical identity verification failure:", err);
-      toast.error("Internal infrastructure issue encountered during authentication verification.");
+      console.error("Identity verification failure:", err);
+      toast.error("Internal issue encountered during authentication verification.");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ function LoginContent() {
         callbackURL: fromRoute 
       });
     } catch (err) {
-      console.error("Google authentication channel sync drop:", err);
+      console.error("Google authentication failed:", err);
       toast.error("Handshake loop with external social authentication authority fractured.");
     }
   };
@@ -67,7 +67,7 @@ function LoginContent() {
           Account Login
         </h2>
         <p className="text-zinc-500 dark:text-zinc-400 text-xs">
-          Verify authorization keys to pull your interactive conceptual tracking grid.
+          Verify login credentials to access your secured IdeaVault account. Ensure your email and password are correct for successful authentication.
         </p>
       </div>
 
@@ -125,14 +125,14 @@ function LoginContent() {
           disabled={loading}
           className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl mt-1 shadow-sm transition-colors flex items-center justify-center text-sm disabled:opacity-50 cursor-pointer"
         >
-          {loading ? "Validating Session Tokens..." : "Secure Core Sign-In"}
+          {loading ? "Checking values..." : "Secured Sign-In"}
         </button>
       </form>
 
       <div className="flex items-center gap-2 my-6">
         <div className="flex-grow h-[1px] bg-zinc-200 dark:bg-zinc-800" />
         <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider whitespace-nowrap">
-          Alternative Sync Protocol
+          Alternative Login
         </span>
         <div className="flex-grow h-[1px] bg-zinc-200 dark:bg-zinc-800" />
       </div>
@@ -143,11 +143,11 @@ function LoginContent() {
         className="w-full h-11 font-semibold border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-200 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2.5 text-sm cursor-pointer"
       >
         <FcGoogle size={18} />
-        <span>Establish Google OAuth Sync</span>
+        <span>Login with Google</span>
       </button>
 
       <p className="text-center text-xs text-zinc-500 dark:text-zinc-400 mt-6">
-        Lacking clearance authorization keys?{" "}
+        Doesn't have an account?{" "}
         <Link href="/register" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
           Register here
         </Link>
@@ -161,7 +161,7 @@ export default function LoginPage() {
     <div className="w-full min-h-[calc(100vh-12rem)] flex items-center justify-center py-8 px-4 bg-[#fafafa] dark:bg-[#0f0f11] transition-colors duration-200">
       <Suspense fallback={
         <div className="text-xs font-semibold tracking-widest text-zinc-400 uppercase animate-pulse">
-          Validating Security Pipeline...
+          Checking the values...
         </div>
       }>
         <LoginContent />

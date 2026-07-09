@@ -23,7 +23,7 @@ export default function RegisterPage() {
 
     
     if (password.length < 6) { 
-      toast.error("Password standard unmet: Minimum 6 characters required."); 
+      toast.error("Password is too short: Minimum 6 characters required."); 
       return; 
     }
     if (!/[A-Z]/.test(password)) { 
@@ -45,15 +45,15 @@ export default function RegisterPage() {
       });
 
       if (error) {
-        toast.error(error.message || "Registration failed. Verify your input parameters.");
+        toast.error(error.message || "Registration failed. Check your password.");
         return;
       }
 
-      toast.success("Identity profile authorized successfully! Please sign in.");
+      toast.success("profile authorized successfully! Please sign in.");
       router.push("/login");
     } catch (err) {
       console.error("Auth tracking malfunction:", err);
-      toast.error("Encountered an internal handshake issue. Try again shortly.");
+      toast.error("Encountered an internal issue. Try again shortly.");
     } finally {
       setLoading(false);
     }
@@ -154,7 +154,7 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl mt-3 shadow-sm transition-colors flex items-center justify-center text-sm disabled:opacity-50 cursor-pointer"
           >
-            {loading ? "Constructing Identity Record..." : "Authorize Registration"}
+            {loading ? "Checking ..." : "Authorize Registration"}
           </button>
         </form>
 
