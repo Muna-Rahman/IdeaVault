@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Banner from "./components/banner";
+import { API_URL } from "@/lib/api";
 import { Lightbulb, MessageSquare, Tag, LayoutGrid, CheckCircle, Code, Briefcase } from "lucide-react";
 
 
@@ -8,11 +9,12 @@ export const dynamic = "force-dynamic";
 
 async function getTrendingIdeas() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/ideas/trending`, {
+    const res = await fetch(`${API_URL}/ideas/trending`, {
       cache: "no-store", 
     });
     
     if (!res.ok) {
+      console.error("Trending ideas request failed:", res.status, await res.text());
       return [];
     }
     

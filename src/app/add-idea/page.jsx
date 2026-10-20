@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LucideLightbulb, LucideCoins, LucideTag, LucideImage, LucideLayers, ShieldAlert, Loader2 } from "lucide-react";
@@ -50,7 +51,7 @@ export default function AddIdeaPage() {
     };
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/ideas`, {
+      const response = await fetch(`${API_URL}/ideas`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
