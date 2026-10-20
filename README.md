@@ -1,32 +1,76 @@
-# IdeaVault 
+# IdeaVault – Client
 
-IdeaVault is a modern, community-driven platform designed for innovators, startup creators, and tech enthusiasts to publish, discover, and refine business concepts. It serves as a digital blueprint repository where creators can share system architectures and get feedback from peers to validate their concepts.
+## Project Overview
 
- **Live Application URL:** 
+IdeaVault is a community-driven platform where innovators, entrepreneurs, and startup enthusiasts can share, explore, and discuss business ideas. Users can browse ideas, search by category, leave feedback, and manage their own submissions through a secure dashboard.
 
----
+## Live Demo
 
-##  Key Features
-
-* **Dynamic Innovation Hub:** A fluid 3-column discovery grid that includes case-insensitive semantic search queries and instant category filters to navigate through ecosystem blueprints effortlessly.
-* **Secure Session Protection:** Complete private route infrastructure backed by robust JWT verification and session states. Includes standard Email/Password matching as well as social Google OAuth verification.
-* **Ecosystem Validation Logs:** An integrated commentary loop where authorized platform peers can add, inline-edit, or delete feedback threads to critique or support active architectural concepts.
-* **Personal Management Dashboard:** A secure, dedicated portfolio area ("My Ideas") allowing authors to seamlessly review, edit details via modal interfaces, or safely delete their owned concepts with verification intercepts.
-* **Global Layout Syncing:** Features complete responsiveness across all viewports (Mobile, Tablet, Desktop), route-based dynamic browser tab title updating, a global custom 404 page handler, and an instant Light/Dark visual theme switch directly in the sticky navigation menu.
+🔗 https://ideavaultclient-beta.vercel.app
 
 ---
 
-## Technology Stack
+## Technologies Used
 
-**Frontend Architecture:**
-* Next.js (App Router)
-* Tailwind CSS (Adaptive Dark/Light Theme Support)
-* HeroUI Components & Lucide React Icon Systems
-* React Hot Toast (Real-time dynamic CRUD notifications)
+- Next.js (App Router)
+- React
+- Tailwind CSS
+- HeroUI
+- Better Auth
+- React Hot Toast
+- Lucide React
+- React Icons
 
-**Backend Infrastructure:**
-* Node.js & Express API Framework
-* MongoDB Cluster Database (Atomic aggregations and incremental counters)
+---
 
+## Features
 
+- User authentication with Better Auth
+- Browse and search business ideas
+- Filter ideas by category
+- Add, edit, and delete your own ideas
+- Comment on ideas and participate in discussions
+- Protected dashboard for authenticated users
+- Dark and light mode support
+- Responsive design for mobile, tablet, and desktop
 
+---
+
+## Main Dependencies
+
+- next
+- react
+- react-dom
+- @heroui/react
+- better-auth
+- react-hot-toast
+- lucide-react
+- react-icons
+
+---
+
+## Run the Project Locally
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Muna-Rahman/ideavault-client.git
+cd ideavault-client
+2. Install dependencies
+npm install
+3. Create a .env.local file
+BETTER_AUTH_SECRET=your_secret
+BETTER_AUTH_URL=http://localhost:3000
+NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
+NEXT_PUBLIC_SERVER_URL=http://localhost:5000
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+MONGODB_URI=your_mongodb_uri
+4. Start the development server
+npm run dev
+5. Open the application
+http://localhost:3000
+
+Server Repository: https://github.com/Muna-Rahman/ideavault-server
