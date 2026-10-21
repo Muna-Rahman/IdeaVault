@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client"; 
 import toast from "react-hot-toast";
+import { authFetch, readError } from "@/lib/api-client";
 import { Loader2, ShieldAlert, MessageSquare, ArrowRight, Calendar } from "lucide-react";
 
 export default function MyInteractionsPage() {
@@ -14,29 +15,26 @@ export default function MyInteractionsPage() {
   const [interactions, setInteractions] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  const apiHost = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-
   useEffect(() => {
     if (!loggedInUser?.email) return;
 
     const pullUserInteractions = async () => {
       setLoadingData(true);
-      let baseHost = apiHost.endsWith("/") ? apiHost.slice(0, -1) : apiHost;
       try {
-        const response = await fetch(`${baseHost}/user-interactions/${encodeURIComponent(loggedInUser.email)}`);
-        if (!response.ok) throw new Error("Failed to pull validation activity.");
+        const response = await authFetch(`/user-interactions/${encodeURIComponent(loggedInUser.email)}`);
+        if (!response.ok) throw new Error(await readError(response, "Failed to load your activity."));
         const payload = await response.json();
-        setInteractions(payload);
+        setInteractions(Array.isArray(payload) ? payload : []);
       } catch (err) {
         console.error(err);
-        toast.error("Had a roadblock compiling your activity profile matrix.");
+        toast.error(err.message || "Could not load your activity.");
       } finally {
         setLoadingData(false);
       }
     };
 
     pullUserInteractions();
-  }, [loggedInUser, apiHost]);
+  }, [loggedInUser?.email]);
 
   if (evaluatingSession || loadingData) {
     return (
@@ -53,7 +51,7 @@ export default function MyInteractionsPage() {
         <div className="border border-zinc-200 dark:border-zinc-800 shadow-xl bg-white dark:bg-zinc-900 rounded-3xl p-8 text-center">
           <ShieldAlert className="w-10 h-10 text-rose-500 mx-auto mb-3" />
           <p className="text-sm font-bold text-zinc-900 dark:text-white mb-4">Please log in to inspect your interaction history matrix.</p>
-          <button onClick={() => router.push("/login")} className="h-11 px-6 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">Log In</button>
+          <button onClick={() => router.push("/login?callbackUrl=%2Fmy-interactions")} className="h-11 px-6 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">Log In</button>
         </div>
       </div>
     );

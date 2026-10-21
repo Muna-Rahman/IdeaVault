@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client"; 
 import toast from "react-hot-toast";
+import { authFetch, readError } from "@/lib/api-client";
 import { Loader2, Edit3, Trash2, ShieldAlert, LucideLightbulb, X, Eye } from "lucide-react";
 
 export default function MyIdeasPage() {
@@ -29,29 +30,26 @@ export default function MyIdeasPage() {
   const [problemStatement, setProblemStatement] = useState("");
   const [proposedSolution, setProposedSolution] = useState("");
 
-  const apiHost = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-
   useEffect(() => {
     if (!loggedInUser?.email) return;
 
     const pullUserIdeas = async () => {
       setLoadingData(true);
-      let baseHost = apiHost.endsWith("/") ? apiHost.slice(0, -1) : apiHost;
       try {
-        const response = await fetch(`${baseHost}/ideas/user/${encodeURIComponent(loggedInUser.email)}`);
-        if (!response.ok) throw new Error("Failed to load user records.");
+        const response = await authFetch(`/ideas/user/${encodeURIComponent(loggedInUser.email)}`);
+        if (!response.ok) throw new Error(await readError(response, "Failed to load user records."));
         const data = await response.json();
-        setMyIdeas(data);
+        setMyIdeas(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
-        toast.error("Had trouble compiling your startup canvas items.");
+        toast.error(err.message || "Had trouble loading your ideas.");
       } finally {
         setLoadingData(false);
       }
     };
 
     pullUserIdeas();
-  }, [loggedInUser, apiHost]);
+  }, [loggedInUser?.email]);
 
   const triggerUpdateSetup = (idea) => {
     setSelectedIdea(idea);
@@ -84,15 +82,13 @@ export default function MyIdeasPage() {
       proposedSolution: proposedSolution.trim()
     };
 
-    let baseHost = apiHost.endsWith("/") ? apiHost.slice(0, -1) : apiHost;
     try {
-      const response = await fetch(`${baseHost}/ideas/${selectedIdea._id}`, {
+      const response = await authFetch(`/ideas/${selectedIdea._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedPayload)
       });
 
-      if (!response.ok) throw new Error("Update rejected.");
+      if (!response.ok) throw new Error(await readError(response, "Update rejected."));
 
       setMyIdeas((prev) =>
         prev.map((item) => (item._id === selectedIdea._id ? { ...item, ...updatedPayload } : item))
@@ -100,7 +96,7 @@ export default function MyIdeasPage() {
       setIsUpdateModalOpen(false);
       toast.success("Startup concept record rewritten cleanly!");
     } catch (err) {
-      toast.error("Could not overwrite document parameters.");
+      toast.error(err.message || "Could not update this idea.");
     } finally {
       setProcessingAction(false);
     }
@@ -115,19 +111,18 @@ export default function MyIdeasPage() {
     if (!selectedIdea) return;
     setProcessingAction(true);
 
-    let baseHost = apiHost.endsWith("/") ? apiHost.slice(0, -1) : apiHost;
     try {
-      const response = await fetch(`${baseHost}/ideas/${selectedIdea._id}`, {
+      const response = await authFetch(`/ideas/${selectedIdea._id}`, {
         method: "DELETE"
       });
 
-      if (!response.ok) throw new Error("Deletion rejected.");
+      if (!response.ok) throw new Error(await readError(response, "Deletion rejected."));
 
       setMyIdeas((prev) => prev.filter((item) => item._id !== selectedIdea._id));
       setIsDeleteModalOpen(false);
       toast.success("Concept successfully purged from database stack.");
     } catch (err) {
-      toast.error("Had a roadblock pulling down record history logs.");
+      toast.error(err.message || "Could not delete this idea.");
     } finally {
       setProcessingAction(false);
     }
@@ -148,7 +143,7 @@ export default function MyIdeasPage() {
         <div className="border border-zinc-200 dark:border-zinc-800 shadow-xl bg-white dark:bg-zinc-900 rounded-3xl p-8 text-center">
           <ShieldAlert className="w-10 h-10 text-rose-500 mx-auto mb-3" />
           <p className="text-sm font-bold text-zinc-900 dark:text-white mb-4">Please log in to manage your profile portfolio canvas.</p>
-          <button onClick={() => router.push("/login")} className="h-11 px-6 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">Log In</button>
+          <button onClick={() => router.push("/login?callbackUrl=%2Fmy-ideas")} className="h-11 px-6 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">Log In</button>
         </div>
       </div>
     );

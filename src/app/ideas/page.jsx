@@ -2,35 +2,41 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import toast from "react-hot-toast";
+import { API_URL } from "@/lib/api";
 import { Loader2, Search, SlidersHorizontal, ArrowUpRight } from "lucide-react";
+
+const platformCategories = [
+  "All",
+  "Tech",
+  "Health",
+  "AI",
+  "Education",
+  "Agriculture",
+  "Fintech"
+];
 
 export default function IdeasPage() {
   const [ideasList, setIdeasList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loadingData, setLoadingData] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const platformCategories = [
-    "All",
-    "Tech",
-    "Health",
-    "AI",
-    "Education",
-    "Agriculture",
-    "Fintech"
-  ];
+  // Honour links like /ideas?category=tech from the home page.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get("category");
+    const match = platformCategories.find((c) => c.toLowerCase() === (wanted || "").toLowerCase());
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (match) setSelectedCategory(match);
+  }, []);
 
   useEffect(() => {
     const fetchIdeas = async () => {
       setLoadingData(true);
       try {
-        let backendUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-        if (backendUrl.endsWith("/")) {
-          backendUrl = backendUrl.slice(0, -1);
-        }
-        
-        let targetEndpoint = `${backendUrl}/ideas?search=${encodeURIComponent(searchQuery)}`;
+        setFetchError(false);
+        let targetEndpoint = `${API_URL}/ideas?search=${encodeURIComponent(searchQuery)}`;
         if (selectedCategory !== "All") {
           targetEndpoint += `&category=${encodeURIComponent(selectedCategory)}`;
         }
@@ -41,10 +47,10 @@ export default function IdeasPage() {
         }
         
         const payloadData = await response.json();
-        setIdeasList(payloadData);
+        setIdeasList(Array.isArray(payloadData) ? payloadData : []);
       } catch (err) {
         console.error("Feed loading operational drop:", err);
-        toast.error("Had an issue updating the ideas timeline grid.");
+        setFetchError(true);
       } finally {
         setLoadingData(false);
       }
@@ -55,7 +61,7 @@ export default function IdeasPage() {
     }, 350);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, reloadKey]);
 
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-[#0f0f11] text-[#1c1c1f] dark:text-[#ececed] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-150">
@@ -111,6 +117,17 @@ export default function IdeasPage() {
             <p className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase animate-pulse">
               Pulling Live Records...
             </p>
+          </div>
+        ) : fetchError ? (
+          <div className="text-center py-24 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 max-w-lg mx-auto px-6">
+            <p className="text-base font-bold text-zinc-900 dark:text-white">Couldn&apos;t load ideas</p>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">The server didn&apos;t respond. Check your connection and try again.</p>
+            <button
+              onClick={() => setReloadKey((k) => k + 1)}
+              className="mt-5 h-10 px-5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl cursor-pointer"
+            >
+              Try again
+            </button>
           </div>
         ) : ideasList.length === 0 ? (
           <div className="text-center py-24 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 max-w-lg mx-auto px-6">

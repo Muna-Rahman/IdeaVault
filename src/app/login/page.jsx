@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -12,7 +12,15 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const fromRoute = searchParams.get("callbackUrl") || "/";
+  // Only allow same-site paths (blocks "//evil.com" style open redirects).
+  const rawCallback = searchParams.get("callbackUrl") || "/";
+  const fromRoute =
+    rawCallback.startsWith("/") && !rawCallback.startsWith("//") ? rawCallback : "/";
+
+  const { data: existingSession } = authClient.useSession();
+  useEffect(() => {
+    if (existingSession?.user) router.replace(fromRoute);
+  }, [existingSession, fromRoute, router]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,7 +31,7 @@ function LoginContent() {
     e.preventDefault();
     try {
       setLoading(true);
-      const { data, error } = await authClient.signIn.email({ 
+      const { error } = await authClient.signIn.email({ 
         email: email.trim(), 
         password: password 
       });
@@ -33,13 +41,10 @@ function LoginContent() {
         return;
       }
 
-      if (data?.user) {
-        localStorage.setItem("vault_jwt_token", `jwt_bearer_token_session_${data.user.id}`);
-      }
-
-      toast.success("Welcome back to IdeaVault database matrix!");
-      router.push(fromRoute);
-      router.refresh();
+      toast.success("Welcome back to IdeaVault!");
+      // Full navigation so the new session cookie is sent to the proxy and
+      // no cached redirect from an earlier prefetch can bounce us back.
+      window.location.assign(fromRoute);
     } catch (err) {
       console.error("Identity verification failure:", err);
       toast.error("Internal issue encountered during authentication verification.");

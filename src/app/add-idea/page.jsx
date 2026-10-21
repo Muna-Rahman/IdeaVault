@@ -1,6 +1,6 @@
 "use client";
 
-import { API_URL } from "@/lib/api";
+import { authFetch, readError } from "@/lib/api-client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LucideLightbulb, LucideCoins, LucideTag, LucideImage, LucideLayers, ShieldAlert, Loader2 } from "lucide-react";
@@ -51,23 +51,20 @@ export default function AddIdeaPage() {
     };
 
     try {
-      const response = await fetch(`${API_URL}/ideas`, {
+      const response = await authFetch("/ideas", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(ideaPayload),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to store document context.");
+        throw new Error(await readError(response, "Failed to save your idea."));
       }
 
       toast.success("Startup idea submitted successfully!");
       router.push("/my-ideas");
       router.refresh();
     } catch (err) {
-      toast.error("Failed to submit startup idea. Please try again.");
+      toast.error(err.message || "Failed to submit startup idea. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -88,7 +85,7 @@ export default function AddIdeaPage() {
         <div className="border border-zinc-200 dark:border-zinc-800 shadow-xl bg-white dark:bg-zinc-900 rounded-3xl p-8 text-center">
           <ShieldAlert className="w-10 h-10 text-rose-500 mx-auto mb-3" />
           <p className="text-sm font-bold text-zinc-900 dark:text-white mb-4">Please log in to register custom concepts inside the archive context.</p>
-          <button onClick={() => router.push("/login")} className="h-11 px-6 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">
+          <button onClick={() => router.push("/login?callbackUrl=%2Fadd-idea")} className="h-11 px-6 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer">
             Log In
           </button>
         </div>

@@ -1,17 +1,24 @@
 import { NextResponse } from "next/server";
-import { auth } from "./lib/auth";
-import { headers } from "next/headers";
+import { getSessionCookie } from "better-auth/cookies";
 
-export async function proxy(request) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url));
+// Lightweight gate: only checks that a session cookie exists. The pages (and
+// the API, via JWT) still validate the real session, so a forged cookie gets
+// no data. Remembers where the visitor was going so login can send them back.
+export function proxy(request) {
+  const sessionCookie = getSessionCookie(request);
+
+  if (!sessionCookie) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set(
+      "callbackUrl",
+      request.nextUrl.pathname + request.nextUrl.search
+    );
+    return NextResponse.redirect(loginUrl);
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  
-  matcher: ["/my-ideas", "/add-idea", "/my-interactions"],
+  matcher: ["/my-ideas/:path*", "/add-idea/:path*", "/my-interactions/:path*"],
 };

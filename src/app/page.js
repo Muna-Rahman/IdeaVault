@@ -135,19 +135,19 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 relative z-10">
-            <Link href="/ideas?category=tech" className="p-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm rounded-xl flex items-center gap-3 transition-colors group">
+            <Link href="/ideas?category=Tech" className="p-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm rounded-xl flex items-center gap-3 transition-colors group">
               <Code size={18} className="text-blue-200" />
               <span className="text-xs font-bold tracking-wide">Software</span>
             </Link>
-            <Link href="/ideas?category=health" className="p-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm rounded-xl flex items-center gap-3 transition-colors group">
+            <Link href="/ideas?category=Health" className="p-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm rounded-xl flex items-center gap-3 transition-colors group">
               <CheckCircle size={18} className="text-emerald-200" />
               <span className="text-xs font-bold tracking-wide">Healthcare</span>
             </Link>
-            <Link href="/ideas?category=ai" className="p-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm rounded-xl flex items-center gap-3 transition-colors group">
+            <Link href="/ideas?category=AI" className="p-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm rounded-xl flex items-center gap-3 transition-colors group">
               <LayoutGrid size={18} className="text-purple-200" />
               <span className="text-xs font-bold tracking-wide">AI Systems</span>
             </Link>
-            <Link href="/ideas?category=finance" className="p-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm rounded-xl flex items-center gap-3 transition-colors group">
+            <Link href="/ideas?category=Fintech" className="p-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-sm rounded-xl flex items-center gap-3 transition-colors group">
               <Briefcase size={18} className="text-amber-200" />
               <span className="text-xs font-bold tracking-wide">FinTech</span>
             </Link>

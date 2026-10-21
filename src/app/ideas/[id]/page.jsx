@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client"; 
 import toast from "react-hot-toast";
+import { API_URL } from "@/lib/api";
+import { authFetch, readError } from "@/lib/api-client";
 import { Loader2, ArrowLeft, Send, Trash2, Edit3, Check, X } from "lucide-react";
 
 export default function IdeaDetailsPage() {
@@ -22,14 +24,12 @@ export default function IdeaDetailsPage() {
   const [activeEditingId, setActiveEditingId] = useState(null);
   const [editTextBuffer, setEditTextBuffer] = useState("");
 
-  const apiHost = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-
   useEffect(() => {
     if (!id) return;
 
     const pullCompleteDataset = async () => {
       setLoadingView(true);
-      let baseHost = apiHost.endsWith("/") ? apiHost.slice(0, -1) : apiHost;
+      const baseHost = API_URL;
       const sanitizedId = String(id).trim();
 
       try {
@@ -61,7 +61,7 @@ export default function IdeaDetailsPage() {
     };
 
     pullCompleteDataset();
-  }, [id, apiHost]);
+  }, [id]);
 
   const handleAddComment = async (e) => {
     e.preventDefault();
@@ -69,21 +69,13 @@ export default function IdeaDetailsPage() {
 
     setSubmittingComment(true);
     try {
-      const baseHost = apiHost.endsWith("/") ? apiHost.slice(0, -1) : apiHost;
-      const uploadPacket = {
-        ideaId: id,
-        userName: loggedInUser.name || "Anonymous Innovator",
-        userEmail: loggedInUser.email,
-        commentText: newCommentInput.trim()
-      };
-
-      const response = await fetch(`${baseHost}/comments`, {
+      // The server reads who you are from your login token.
+      const response = await authFetch("/comments", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(uploadPacket)
+        body: JSON.stringify({ ideaId: id, commentText: newCommentInput.trim() })
       });
 
-      if (!response.ok) throw new Error("Server rejected comment.");
+      if (!response.ok) throw new Error(await readError(response, "Server rejected comment."));
       const responseData = await response.json();
 
       if (responseData.success) {
@@ -92,7 +84,7 @@ export default function IdeaDetailsPage() {
         toast.success("Feedback stamped into validation registry.");
       }
     } catch (err) {
-      toast.error("Couldn't upload feedback profile data.");
+      toast.error(err.message || "Couldn't post your comment.");
     } finally {
       setSubmittingComment(false);
     }
@@ -100,16 +92,14 @@ export default function IdeaDetailsPage() {
 
   const handleSaveEditComment = async (commentId) => {
     if (!editTextBuffer.trim()) return;
-    const baseHost = apiHost.endsWith("/") ? apiHost.slice(0, -1) : apiHost;
 
     try {
-      const response = await fetch(`${baseHost}/comments/${commentId}`, {
+      const response = await authFetch(`/comments/${commentId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ commentText: editTextBuffer.trim() })
       });
 
-      if (!response.ok) throw new Error("Edit request failed.");
+      if (!response.ok) throw new Error(await readError(response, "Edit request failed."));
 
       setCommentsList((prev) =>
         prev.map((c) => (c._id === commentId ? { ...c, commentText: editTextBuffer.trim() } : c))
@@ -117,29 +107,28 @@ export default function IdeaDetailsPage() {
       setActiveEditingId(null);
       toast.success("Feedback log entry updated.");
     } catch (err) {
-      toast.error("Had an issue updating your text payload.");
+      toast.error(err.message || "Could not update your comment.");
     }
   };
 
   const handleDeleteComment = async (commentId) => {
     if (!confirm("Permanently purge this feedback record?")) return;
-    const baseHost = apiHost.endsWith("/") ? apiHost.slice(0, -1) : apiHost;
 
     try {
-      const response = await fetch(`${baseHost}/comments/${commentId}?ideaId=${id}`, {
+      const response = await authFetch(`/comments/${commentId}`, {
         method: "DELETE"
       });
 
-      if (!response.ok) throw new Error("Delete failed.");
+      if (!response.ok) throw new Error(await readError(response, "Delete failed."));
 
       setCommentsList((prev) => prev.filter((c) => c._id !== commentId));
       toast.success("Feedback log cleanly purged.");
     } catch (err) {
-      toast.error("Could not remove record entry.");
+      toast.error(err.message || "Could not delete your comment.");
     }
   };
 
-  if (evaluatingSession || loadingView) {
+  if (loadingView) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-white dark:bg-zinc-900">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -148,13 +137,14 @@ export default function IdeaDetailsPage() {
     );
   }
 
-  if (!loggedInUser) {
+  if (!ideaData) {
     return (
       <div className="w-full max-w-3xl mx-auto py-8">
         <div className="border border-zinc-200 dark:border-zinc-800 shadow-xl bg-white dark:bg-zinc-900 rounded-3xl p-8 text-center">
-          <p className="text-sm font-bold text-zinc-900 dark:text-white mb-4">Please log in to review this startup architecture.</p>
-          <button onClick={() => router.push("/login")} className="h-11 px-6 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-lg">
-            Log In
+          <p className="text-sm font-bold text-zinc-900 dark:text-white mb-1">We couldn&apos;t find this idea.</p>
+          <p className="text-xs text-zinc-500 mb-4">It may have been removed, or the server is unreachable.</p>
+          <button onClick={() => router.push("/ideas")} className="h-11 px-6 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-lg cursor-pointer">
+            Back to all ideas
           </button>
         </div>
       </div>
@@ -261,6 +251,7 @@ export default function IdeaDetailsPage() {
           </h3>
         </div>
 
+        {evaluatingSession ? null : loggedInUser ? (
         <form onSubmit={handleAddComment} className="flex gap-2">
           <input
             type="text"
@@ -278,6 +269,17 @@ export default function IdeaDetailsPage() {
             Comment <Send className="w-3 h-3" />
           </button>
         </form>
+        ) : (
+          <div className="flex items-center justify-between gap-3 p-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+            <p className="text-xs text-zinc-500">Log in to join the discussion.</p>
+            <button
+              onClick={() => router.push(`/login?callbackUrl=${encodeURIComponent(`/ideas/${id}`)}`)}
+              className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl cursor-pointer"
+            >
+              Log in
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           {commentsList.length === 0 ? (
