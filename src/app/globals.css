@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+/* Tailwind v4 uses the OS setting for `dark:` by default. The navbar toggle
+   adds/removes a `.dark` class on <html>, so tell Tailwind to follow that. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark; /* dark scrollbars, form controls and <select> menus */
+}

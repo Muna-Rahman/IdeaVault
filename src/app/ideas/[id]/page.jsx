@@ -191,7 +191,7 @@ export default function IdeaDetailsPage() {
           </div>
 
           {ideaData?.imageUrl && (
-            <div className="w-full h-64 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50">
+            <div className="w-full h-64 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-900">
               <img src={ideaData.imageUrl} alt="Concept Preview" className="w-full h-full object-cover" />
             </div>
           )}
